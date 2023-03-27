@@ -11,37 +11,28 @@ import com.oknet.sample.databinding.NetOkdomainActivityBinding
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import libcore.net.okhttp.OkDomain
-import libcore.net.okhttp.OnConflictStrategy
-import libcore.net.okhttp.addOkDomain
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.scalars.ScalarsConverterFactory
+import unics.oknet.OkNet
+import unics.oknet.addOkDomain
+import unics.oknet.apiService
+import unics.oknet.okhttp.OkDomain
+import unics.oknet.okhttp.OnConflictStrategy
 
 class OkDomainActivity : AppCompatActivity() {
 
-    val baseUrl = "https://www.bing.com/"
-
-    val client = OkHttpClient.Builder().addOkDomain(baseUrl).also {
-        val httpLoggingInterceptor = HttpLoggingInterceptor()
-        httpLoggingInterceptor.level = HttpLoggingInterceptor.Level.BODY//配置输出级别
-        it.addInterceptor(httpLoggingInterceptor)//配置日志拦截器
-    }
-
-    val retrofit = Retrofit.Builder()
-        .baseUrl(baseUrl)
-        .addConverterFactory(ScalarsConverterFactory.create())
-        .client(client.build())
-        .build()
-
-    val service = retrofit.create(OkDomainTest::class.java)
-
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        OkHttpClient.Builder().addOkDomain(baseUrl)
-            .build()
+        OkNet.setup(this.application!!, "https://www.baidu.com/") { obuilder, rbuilder ->
+            rbuilder.addConverterFactory(ScalarsConverterFactory.create())
+            val httpLoggingInterceptor = HttpLoggingInterceptor()
+            httpLoggingInterceptor.level = HttpLoggingInterceptor.Level.BODY//配置输出级别
+            obuilder.addInterceptor(httpLoggingInterceptor)//配置日志拦截器
+        }
+        val service = apiService<OkDomainTest>()
+
         val viewBinding = NetOkdomainActivityBinding.inflate(layoutInflater)
         setContentView(viewBinding.root)
 
