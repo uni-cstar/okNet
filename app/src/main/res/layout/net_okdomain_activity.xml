@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/mainDomainTv"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+
+        <EditText
+            android:id="@+id/mainDomainEt"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/main_domain" />
+
+        <Button
+            android:id="@+id/mainRequest"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="请求" />
+
+        <TextView
+            android:id="@+id/domain1Tv"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp" />
+
+        <EditText
+            android:id="@+id/domain1"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/domain1" />
+
+        <Button
+            android:id="@+id/domain1Btn"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="请求" />
+
+        <TextView
+            android:id="@+id/domain2Tv"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp" />
+
+        <EditText
+            android:id="@+id/domain2"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/domain2" />
+
+        <Button
+            android:id="@+id/domain2Btn"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="请求" />
+
+
+        <Button
+            android:id="@+id/domain3Btn"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="直接请求url3" />
+
+        <Button
+            android:id="@+id/headerBtn"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="请求主域名（带有全局header配置）" />
+
+        <Button
+            android:id="@+id/header1Btn"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="测试Ignore header" />
+
+        <Button
+            android:id="@+id/header2Btn"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="测试Replace header" />
+
+        <Button
+            android:id="@+id/header3Btn"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="测试add directly header" />
+
+        <Button
+            android:id="@+id/header4Btn"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="测试abort header(点我会导致程序崩溃)" />
+    </LinearLayout>
+
+</ScrollView>

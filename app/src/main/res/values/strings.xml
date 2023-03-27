@@ -1,0 +1,6 @@
+<resources>
+    <string name="app_name">oknet</string>
+    <string name="main_domain">https://www.bing.com/</string>
+    <string name="domain1">https://juejin.cn/post/</string>
+    <string name="domain2">http://www.baidu.com:667/httlos/</string>
+</resources>
