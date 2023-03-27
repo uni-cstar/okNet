@@ -1,5 +1,7 @@
 apply plugin: 'java-library'
 apply plugin: 'kotlin'
+apply plugin: 'org.jetbrains.dokka'
+
 java {
     sourceCompatibility JavaVersion.VERSION_1_8
     targetCompatibility JavaVersion.VERSION_1_8
@@ -8,3 +10,62 @@ java {
 dependencies {
     implementation 'com.squareup.okhttp3:okhttp:3.12.12'
 }
+
+/**
+ * kotlin java library 生成源码和javadoc jar的任务
+ */
+
+// 生成源码产物
+task sourcesJar(type: Jar, dependsOn: classes) {
+    classifier = 'sources'
+    from sourceSets.main.allSource
+}
+
+// 生成 javadoc 产物
+task javadocJar(type: Jar, dependsOn: dokkaJavadoc) {
+    classifier = 'javadoc'
+    from javadoc.destinationDir
+}
+
+
+import proguard.gradle.ProGuardTask
+
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath "com.guardsquare:proguard-gradle:7.1.0"
+    }
+}
+
+task makeJar(type: ProGuardTask,dependsOn:"build") {
+
+    def jarName = 'oknet.jar'
+    def inputFolder = "$buildDir/libs"
+    def obfuscatedFolder = "$buildDir/obfuscated"
+
+    delete obfuscatedFolder//删除之前编译混淆jar包
+    injars "$inputFolder/$jarName" //项目编译但未混淆的jar
+    outjars "$obfuscatedFolder/oknet.jar"//混淆后的jar路径
+
+    // 配置ProGuardTask
+    printseeds "$obfuscatedFolder/seeds.txt"
+    printmapping "$obfuscatedFolder/mapping.txt"
+    configuration 'proguard-rules.pro'// 混淆配置文件
+    dontwarn //避免在混淆过程中因为警告导致编译失败
+    dontshrink //不压缩，避免没有被应用的代码被删掉
+
+    doLast {
+        // 删除原有的class文件
+        delete "$inputFolder/$jarName"
+        // 将混淆class文件复制过去
+        copy {
+            from "$obfuscatedFolder/oknet.jar"
+            into "$inputFolder/$jarName"
+        }
+    }
+}
+
+//在jar任务之后执行 后续任务
+//jar.finalizedBy(proguardTask)
