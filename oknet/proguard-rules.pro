@@ -3,5 +3,4 @@
 
 -keep public class libcore.net.okhttp.**{
     public *;
-    protected * ;
 }
