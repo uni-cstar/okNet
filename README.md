@@ -7,11 +7,12 @@
 
 附大神文章：
 [解决Retrofit多BaseUrl及运行时动态改变BaseUrl(一)](https://www.jianshu.com/p/2919bdb8d09a)
+
 [解决Retrofit多BaseUrl及运行时动态改变BaseUrl(二)](https://www.jianshu.com/p/35a8959c2f86)
 
 ## 1. Setup
 
-添加如下依赖
+添加依赖
 ```
 implementation 'io.github.uni-cstar:oknet:0.0.3'
 ```
@@ -47,8 +48,10 @@ OkDomain.useOkDomain(builder,baseUrl);
 #### 2.4 Remove Global Header
 `OkDomain.removeMainHeader(key)`
 
+**以上便实现了主域名（主BaseUrl）在动态运行过程中的切换以及全局Header的配置管理**
+
 ##  3. Advanced Usage
-前面的只是简单的使用，可以在运行过程中随时切换主域名，为主域名添加和移除全局Header
+接下来配置其他的域名以及对应的全局Header管理，其方法与全面主域名相关的操作类似。
 
 ### 3.1 Multi Domain
 多域名支持，通过以下方法增加一个名字为`baidu`的域名配置，其baseUrl为`http://www.baidu.com/`(可以是任意的常见的域名，可以包含端口号，可以包含pathSegment，这一点与RetrofitUrlManager库不同)
@@ -62,6 +65,11 @@ OkDomain.setDomain("baidu","http://www.baidu.com/");
 ```
  public interface ApiService {
      @Headers({"Domain-Name: baidu"}) // 其中baidu就是前面添加的域名名字，其格式为"Domain-Name:{域名名字}"
+     @GET("/v2/book/{id}")
+     Observable<ResponseBody> getBook(@Path("id") int id);
+     
+     //也可以使用内置的常量来拼接域名，避免写错
+     @Headers({OkDomain.DOMAIN_NAME_HEADER+"baidu"}) // 其中baidu就是前面添加的域名名字，其格式为"Domain-Name:{域名名字}"
      @GET("/v2/book/{id}")
      Observable<ResponseBody> getBook(@Path("id") int id);
 }
@@ -97,4 +105,7 @@ OkDomain.addMainHeader("customKey", "GlobalHeaderValue", OnConflictStrategy.IGNO
 OkDomain.addHeader("baidu","abort_key", "GlobalHeaderValue", OnConflictStrategy.ABORT)
 ```
 
-
+### 4 额外说明
+如果ApiService没有配置域名名字，并且没有使用@url，则表示使用主域名的配置；
+如果使用了@url指定了baseurl，那么最终请求的baseurl与任何已经配置的域名（包括主域名）无关系，则已配置的域名和全局header对此请求不会有任何影响，相反如果@url
+生成的请求的url地址在配置中找到了域名，则会根据配置信息做对应处理。
