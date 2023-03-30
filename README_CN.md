@@ -116,3 +116,13 @@ OkDomain.addHeader("baidu","abort_key", "GlobalHeaderValue", OnConflictStrategy.
 如果ApiService没有配置域名名字，则默认会使用主域名的配置进行处理；
 如果ApiService使用了@url注解，则存在以下两种情况：
 @url产生的请求的url与任何已经配置的域名（包括主域名）无关系，则已配置的域名和全局header对此请求不会有任何影响，相反如果@url生成的请求的url地址在配置中找到了域名，则会根据配置信息做对应处理。
+
+### 5 其他Api
+#### 5.1 Log
+由于这个库是一个java库，没有依赖android sdk，所以日志使用的是system.out.print，可以通过如下方法关闭日志：
+`OkDomain.debug = false` // or true,default is true
+#### 5.2 启用/禁用组件
+如果您需要关闭该库的所有功能，执行以下代码即可关闭/开启：
+`OkDomain.enable = false` // or true,default is true
+
+
