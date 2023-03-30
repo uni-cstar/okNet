@@ -1,7 +1,17 @@
 ## Introduction
-###### 这也许是目前Retrofit（OkHttp）支持多BaseUrl以及在运行时改变BaseUrl实现最简单的库；
-###### 同时也许也是支持全局Header配置实现最为简单、最为全面的库；
-###### 与Retrofit的@url方法不冲突，即如果@url指定的是其他baseurl，与全局配置的域名毫无关系，那么全局配置的baseurl和header不会对接口造成任何影响。
+
+This may be currently (2023/03) Retrofit (OkHttp) supports multiple BaseUrl and changes BaseUrl at runtime to achieve the simplest library;
+
+At the same time, it may also be the simplest and most comprehensive library that supports global Header configuration implementation;
+
+It does not conflict with Retrofit's @url method, that is, if @url specifies another baseurl, which has nothing to do with the globally configured domain name, then the globally configured baseurl and header will not have any impact on the interface.
+
+这也许是目前(2023/03)Retrofit（OkHttp）支持多BaseUrl以及在运行时改变BaseUrl实现最简单的库；
+
+同时也许也是支持全局Header配置实现最为简单、最为全面的库；
+
+与Retrofit的@url方法不冲突，即如果@url指定的是其他baseurl，与全局配置的域名毫无关系，那么全局配置的baseurl和header不会对接口造成任何影响。
+
 
 大家在开发过程中也许遇到过需要在运行期间切换baseurl或者需要支持多域名的情况，在此之前我基本是用的官方的动态 host的方案，需要其他域名的时候，都是通过retrofit的@url注解指定请求的地址，后来接触了[JessYanCoding大神](https://github.com/JessYanCoding)开源的[RetrofitUrlManager](https://github.com/JessYanCoding/RetrofitUrlManager)库，大神也发布了两篇文章详细的介绍了该库实现的依据，但是我一直在思考如何解决为了解决这个问题而不得不引入的`pathSegment`概念和三种模式(普通模式、高级模式、超级模式)，毕竟大神写这个库已经是好几年前，所以我一直在想一个更好的解决办法，能够忽略这些概念，让使用变得更加简单，这也是我写这个库的根本原因。
 
@@ -9,7 +19,6 @@
 [解决Retrofit多BaseUrl及运行时动态改变BaseUrl(一)](https://www.jianshu.com/p/2919bdb8d09a)
 
 [解决Retrofit多BaseUrl及运行时动态改变BaseUrl(二)](https://www.jianshu.com/p/35a8959c2f86)
-
 ## 1. Setup
 
 添加依赖
