@@ -1,4 +1,4 @@
 
-rootProject.name = "oknet"
+rootProject.name = "okNet"
 include ':app'
 include ':oknet'
