@@ -177,6 +177,7 @@ object OkNetClient {
         val oBuilder = OkHttpClient.Builder()
             .addOkDomain(baseUrl)
         val rBuilder = Retrofit.Builder()
+        rBuilder.baseUrl(baseUrl)
         initializer.invoke(oBuilder, rBuilder)
         mOkHttpClient = oBuilder.build()
         mRetrofit = rBuilder.client(mOkHttpClient).build()
