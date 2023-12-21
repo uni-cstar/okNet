@@ -10,6 +10,11 @@ fun OkHttpClient.Builder.addOkDomain(baseUrl: String): OkHttpClient.Builder {
     return this
 }
 
+inline fun <reified T : Any> apiService(cacheable:Boolean = true): T {
+    return OkNetClient.createApiService(T::class.java, cacheable)
+}
+
+
 var isAndroidPlatform: Boolean = run {
     try {
         Class.forName("android.os.Build")

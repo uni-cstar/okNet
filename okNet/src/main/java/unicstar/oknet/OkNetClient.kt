@@ -36,7 +36,7 @@ object OkNetClient {
 
     }
 
-    private lateinit var mOkhttpClient: OkHttpClient
+    private lateinit var mOkHttpClient: OkHttpClient
     private lateinit var mRetrofit: Retrofit
     private val mApiServiceCaches = mutableMapOf<Class<*>, Any>()
 
@@ -54,7 +54,7 @@ object OkNetClient {
     val okHttpClient: OkHttpClient
         get() {
             tryInit()
-            return mOkhttpClient
+            return mOkHttpClient
         }
 
     @PublishedApi
@@ -90,8 +90,8 @@ object OkNetClient {
     private fun quicklyLazyInitializer(
         baseUrl: String,
         debug: Boolean = false,
-        connectTimeoutMsec: Long = 30 * 1000,
-        readTimeoutMsec: Long = 30 * 1000,
+        connectTimeoutMsec: Long = 5 * 1000,
+        readTimeoutMsec: Long = 15 * 1000,
         retryOnConnectionFailure: Boolean = true,
         converterFactory: Converter.Factory? = quicklyPreferredConverterFactory(),
         vararg mainHeaders: Triple<String, String, OnConflictStrategy>
@@ -178,8 +178,8 @@ object OkNetClient {
             .addOkDomain(baseUrl)
         val rBuilder = Retrofit.Builder()
         initializer.invoke(oBuilder, rBuilder)
-        mOkhttpClient = oBuilder.build()
-        mRetrofit = rBuilder.client(mOkhttpClient).build()
+        mOkHttpClient = oBuilder.build()
+        mRetrofit = rBuilder.client(mOkHttpClient).build()
     }
 
     /**

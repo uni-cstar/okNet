@@ -5,7 +5,7 @@ plugins {
 
 android {
     compileSdk 32
-
+    namespace 'com.oknet.sample'
     defaultConfig {
         applicationId "com.oknet.sample"
         minSdk 19
