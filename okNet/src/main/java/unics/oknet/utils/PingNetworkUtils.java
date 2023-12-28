@@ -1,4 +1,4 @@
-package unicstar.oknet.utils;
+package unics.oknet.utils;
 
 import java.io.BufferedReader;
 import java.io.IOException;

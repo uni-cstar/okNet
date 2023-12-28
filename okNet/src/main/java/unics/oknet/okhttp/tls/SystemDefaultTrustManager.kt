@@ -1,4 +1,4 @@
-package unicstar.oknet.okhttp.tls
+package unics.oknet.okhttp.tls
 
 import java.security.GeneralSecurityException
 import java.security.KeyStore

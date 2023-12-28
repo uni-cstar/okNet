@@ -1,5 +1,6 @@
-package unicstar.oknet
+package unics.oknet
 
+import android.app.Application
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import okhttp3.logging.LoggingEventListener
@@ -7,19 +8,22 @@ import retrofit2.Converter
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.converter.moshi.MoshiConverterFactory
-import unicstar.oknet.okhttp.OkDomain
-import unicstar.oknet.okhttp.OnConflictStrategy
+import unics.oknet.okhttp.OkDomain
+import unics.oknet.okhttp.OnConflictStrategy
+import unics.oknet.request.ProgressInterceptor
 import java.util.concurrent.TimeUnit
 
 /**
  * 简易的网络api请求客户端；也可以单独使用[unicstar.oknet.okhttp.OkDomain]的功能
  * */
-object OkNetClient {
+object OkNet {
 
     /**
      * 延迟初始化
      */
     interface LazyInitializer {
+
+        val app: Application
 
         val baseUrl: String
 
@@ -44,6 +48,16 @@ object OkNetClient {
     private var hasInit: Boolean = false
     private var mLazyInitializer: LazyInitializer? = null
 
+    private lateinit var _app: Application
+
+    @JvmStatic
+    val app: Application
+        get() {
+            if (hasInit)
+                return _app
+            return mLazyInitializer!!.app
+        }
+
     var debuggable: Boolean
         get() = OkDomain.debuggable
         set(value) {
@@ -61,8 +75,9 @@ object OkNetClient {
     internal fun tryInit() {
         if (hasInit)
             return
-        val lazyInitializer = mLazyInitializer ?: throw RuntimeException("请先调用setup方法进行初始化")
-        setup(lazyInitializer.baseUrl, lazyInitializer::onSetup)
+        val lazyInitializer =
+            mLazyInitializer ?: throw RuntimeException("请先调用setup方法进行初始化")
+        setup(lazyInitializer.app, lazyInitializer.baseUrl, lazyInitializer::onSetup)
         lazyInitializer.onConfigured()
         mLazyInitializer = null
     }
@@ -88,6 +103,7 @@ object OkNetClient {
      * @param retryOnConnectionFailure  连接失败是否重连，默认true
      */
     private fun quicklyLazyInitializer(
+        app: Application,
         baseUrl: String,
         debug: Boolean = false,
         connectTimeoutMsec: Long = 5 * 1000,
@@ -98,6 +114,8 @@ object OkNetClient {
     ): LazyInitializer {
 
         return object : LazyInitializer {
+
+            override val app: Application = app
 
             override val baseUrl: String = baseUrl
 
@@ -141,6 +159,7 @@ object OkNetClient {
      */
     @JvmStatic
     fun setupQuickly(
+        app: Application,
         baseUrl: String,
         debug: Boolean = false,
         connectTimeoutMsec: Long = 30 * 1000,
@@ -152,6 +171,7 @@ object OkNetClient {
         debuggable = debug
         setup(
             quicklyLazyInitializer(
+                app,
                 baseUrl,
                 debug,
                 connectTimeoutMsec,
@@ -169,13 +189,19 @@ object OkNetClient {
     }
 
     @JvmStatic
-    fun setup(baseUrl: String, initializer: (OkHttpClient.Builder, Retrofit.Builder) -> Unit) {
+    fun setup(
+        app: Application,
+        baseUrl: String,
+        initializer: (OkHttpClient.Builder, Retrofit.Builder) -> Unit
+    ) {
         require(!hasInit) {
             "OkNetClient has already been configured and cannot be configured repeatedly"
         }
+        _app = app
         hasInit = true
         val oBuilder = OkHttpClient.Builder()
             .addOkDomain(baseUrl)
+            .addInterceptor(ProgressInterceptor())
         val rBuilder = Retrofit.Builder()
         rBuilder.baseUrl(baseUrl)
         initializer.invoke(oBuilder, rBuilder)
@@ -247,6 +273,7 @@ object OkNetClient {
      * 创建ApiService
      * @param cacheable 是否使用缓存：建议反复、长期使用的ApiService可以全局保存
      */
+    @JvmStatic
     fun <T : Any> createApiService(clz: Class<T>, cacheable: Boolean): T {
         tryInit()
         return if (cacheable) {
@@ -261,6 +288,7 @@ object OkNetClient {
     /**
      * 移除指定的ApiService
      */
+    @JvmStatic
     fun removeApiService(clz: Class<*>): Any? {
         return mApiServiceCaches.remove(clz)
     }
@@ -268,6 +296,7 @@ object OkNetClient {
     /**
      * 清空所有的ApiService缓存
      */
+    @JvmStatic
     fun clearApiService() {
         mApiServiceCaches.clear()
     }

@@ -14,20 +14,20 @@
  * limitations under the License.
  */
 
-package unicstar.oknet.okhttp
+package unics.oknet.okhttp
 
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.Response
-import unicstar.oknet.okhttp.OkDomain.addHeader
-import unicstar.oknet.okhttp.OkDomain.addMainHeader
-import unicstar.oknet.okhttp.OkDomain.enable
-import unicstar.oknet.okhttp.OkDomain.removeHeader
-import unicstar.oknet.okhttp.OkDomain.removeMainHeader
-import unicstar.oknet.okhttp.OkDomain.setDomain
-import unicstar.oknet.okhttp.OkDomain.setMainDomain
-import unicstar.oknet.okhttp.OkDomain.useOkDomain
+import unics.oknet.okhttp.OkDomain.addHeader
+import unics.oknet.okhttp.OkDomain.addMainHeader
+import unics.oknet.okhttp.OkDomain.enable
+import unics.oknet.okhttp.OkDomain.removeHeader
+import unics.oknet.okhttp.OkDomain.removeMainHeader
+import unics.oknet.okhttp.OkDomain.setDomain
+import unics.oknet.okhttp.OkDomain.setMainDomain
+import unics.oknet.okhttp.OkDomain.useOkDomain
 
 /**
  * 用于动态配置和切换Okhttp的baseurl

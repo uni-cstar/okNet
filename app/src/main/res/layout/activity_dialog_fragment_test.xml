@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <Button
+        android:id="@+id/show"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="显示dialog"/>
+
+
+    <Button
+        android:id="@+id/go"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="打开一个activity"/>
+
+    <androidx.fragment.app.FragmentContainerView
+        android:id="@+id/fixedFragment"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:name="com.oknet.sample.DialogTest"/>
+
+</LinearLayout>

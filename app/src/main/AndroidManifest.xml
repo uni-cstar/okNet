@@ -15,6 +15,10 @@
         android:theme="@style/Theme.Oknet"
         tools:targetApi="31" >
         <activity android:name=".OkDomainActivity">
+
+        </activity>
+
+        <activity android:name=".DialogTestActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>

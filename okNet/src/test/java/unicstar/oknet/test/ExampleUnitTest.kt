@@ -1,10 +1,10 @@
 package unicstar.oknet.test
 
 import org.junit.Test
-import unicstar.oknet.utils.PingNetworkUtils
-import unicstar.oknet.utils.isNetworkAvailable
-import unicstar.oknet.utils.pingByCmd
-import unicstar.oknet.utils.pingByInetAddress
+import unics.oknet.utils.PingNetworkUtils
+import unics.oknet.utils.isNetworkAvailable
+import unics.oknet.utils.pingByCmd
+import unics.oknet.utils.pingByInetAddress
 import java.util.concurrent.CountDownLatch
 import kotlin.system.measureTimeMillis
 

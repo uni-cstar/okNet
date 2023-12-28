@@ -11,13 +11,13 @@ import com.oknet.sample.databinding.NetOkdomainActivityBinding
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import libcore.net.okhttp.OkDomain
-import libcore.net.okhttp.OnConflictStrategy
-import libcore.net.okhttp.addOkDomain
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.scalars.ScalarsConverterFactory
+import unicstar.oknet.addOkDomain
+import unicstar.oknet.okhttp.OkDomain
+import unicstar.oknet.okhttp.OnConflictStrategy
 
 class OkDomainActivity : AppCompatActivity() {
 

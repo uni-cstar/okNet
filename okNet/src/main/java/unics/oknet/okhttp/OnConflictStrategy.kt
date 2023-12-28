@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package unicstar.oknet.okhttp
+package unics.oknet.okhttp
 
 import okhttp3.Headers
 import okhttp3.Request

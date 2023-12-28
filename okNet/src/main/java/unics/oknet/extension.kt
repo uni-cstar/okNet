@@ -1,9 +1,9 @@
-package unicstar.oknet
+package unics.oknet
 
 import android.os.Build
 import android.util.Log
 import okhttp3.OkHttpClient
-import unicstar.oknet.okhttp.OkDomain
+import unics.oknet.okhttp.OkDomain
 
 fun OkHttpClient.Builder.addOkDomain(baseUrl: String): OkHttpClient.Builder {
     OkDomain.useOkDomain(this, baseUrl)
@@ -11,9 +11,8 @@ fun OkHttpClient.Builder.addOkDomain(baseUrl: String): OkHttpClient.Builder {
 }
 
 inline fun <reified T : Any> apiService(cacheable:Boolean = true): T {
-    return OkNetClient.createApiService(T::class.java, cacheable)
+    return OkNet.createApiService(T::class.java, cacheable)
 }
-
 
 var isAndroidPlatform: Boolean = run {
     try {
@@ -38,7 +37,7 @@ internal fun isDependOn(className: String): Boolean {
  * 采用这种方法（内联），在使用的时候，可以避免字符串的创建
  */
 internal inline fun logD(tag: String, msgFactory: () -> String) {
-    if (!OkNetClient.debuggable)
+    if (!OkNet.debuggable)
         return
     if (isAndroidPlatform) {
         Log.d(tag, msgFactory.invoke())

@@ -1,6 +1,6 @@
 @file:JvmName("NetworkKt")
 
-package unicstar.oknet.utils
+package unics.oknet.utils
 
 import java.net.HttpURLConnection
 import java.net.InetAddress
