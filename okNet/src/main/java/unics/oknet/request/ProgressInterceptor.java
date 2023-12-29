@@ -11,6 +11,7 @@ import okhttp3.Response;
 /**
  * Create by luochao
  * on 2023/12/26
+ * 上传/下载 进度拦截器
  */
 public class ProgressInterceptor implements Interceptor {
 

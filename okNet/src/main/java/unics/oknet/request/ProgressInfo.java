@@ -3,11 +3,15 @@ package unics.oknet.request;
 import android.os.SystemClock;
 import android.text.format.DateUtils;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 /**
  * Create by luochao
  * on 2023/12/26
  */
 public class ProgressInfo {
+
     /**
      * 最大等待时间
      */
@@ -15,6 +19,9 @@ public class ProgressInfo {
 
     //唯一键
     private final String id;
+
+    //请求的初始url
+    private final String url;
 
     //本次变化大小、已完成大小、总大小
     private long bytesInterval, bytesWritten, bytesTotal;
@@ -28,8 +35,9 @@ public class ProgressInfo {
     //距离上一次更新的间隔时间
     private long intervalUpdateRealtime = 0;
 
-    ProgressInfo(String id) {
+    ProgressInfo(@NotNull String id, @NotNull String url) {
         this.id = id;
+        this.url = url;
     }
 
     void update(long byteCount, long bytesWritten, long bytesTotal) {
@@ -45,8 +53,13 @@ public class ProgressInfo {
         return this.id;
     }
 
+    public String url(){
+        return this.url;
+    }
+
     /**
      * 当前完成进度
+     *
      * @return 0-100
      */
     public int progress() {

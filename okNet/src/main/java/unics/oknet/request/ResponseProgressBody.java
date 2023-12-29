@@ -17,6 +17,7 @@ import okio.Source;
  * on 2023/12/26
  */
 class ResponseProgressBody extends ResponseBody {
+
     private final ResponseBody responseBody;
     private final DownloadPrgCallback callback;
     private BufferedSource bufferedSource;
@@ -48,6 +49,7 @@ class ResponseProgressBody extends ResponseBody {
     private Source progressSource(Source source) {
 
         return new ForwardingSource(source) {
+
             long bytesRead = 0L;
             long contentLength = 0L;
 
@@ -61,7 +63,6 @@ class ResponseProgressBody extends ResponseBody {
                 callback.onProgress(byteCount, bytesRead, contentLength);
                 return readCount;
             }
-
         };
     }
 }

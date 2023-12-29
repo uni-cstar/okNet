@@ -12,21 +12,21 @@ import java.util.concurrent.ConcurrentLinkedQueue;
  * Create by luochao
  * on 2023/12/26
  */
-class SafeRefList {
+class CallbackList {
 
-    private final ConcurrentHashMap<String, SafeProgressCallback> callbacks = new ConcurrentHashMap<>();
-    private final ConcurrentLinkedQueue<SafeProgressCallback> cachedCallbacks = new ConcurrentLinkedQueue<SafeProgressCallback>();
+    private final ConcurrentHashMap<String, CallbackHolder> callbacks = new ConcurrentHashMap<>();
+    private final ConcurrentLinkedQueue<CallbackHolder> cachedCallbacks = new ConcurrentLinkedQueue<CallbackHolder>();
 
     @NotNull
-    public SafeProgressCallback add(String key, ProgressCallback ref) {
-        SafeProgressCallback callbackProxy;
+    public CallbackHolder add(String key, ProgressCallback ref) {
+        CallbackHolder callbackProxy;
         if (callbacks.containsKey(key)) {
             callbackProxy = callbacks.get(key);
             callbackProxy.add(ref);
         } else {
             callbackProxy = cachedCallbacks.poll();
             if (callbackProxy == null) {
-                callbackProxy = new SafeProgressCallback(key, ref);
+                callbackProxy = new CallbackHolder(key, ref);
                 callbacks.put(key, callbackProxy);
             } else {
                 callbackProxy.add(ref);
@@ -36,12 +36,12 @@ class SafeRefList {
     }
 
     @Nullable
-    public SafeProgressCallback get(String key) {
+    public CallbackHolder get(String key) {
         return callbacks.get(key);
     }
 
     public void remove(String key) {
-        SafeProgressCallback value = callbacks.getOrDefault(key, null);
+        CallbackHolder value = callbacks.getOrDefault(key, null);
         if (value != null) {
             value.reset();
             try {
@@ -53,10 +53,10 @@ class SafeRefList {
     }
 
     public void remove(ProgressCallback callback) {
-        Iterator<Map.Entry<String, SafeProgressCallback>> it = callbacks.entrySet().iterator();
+        Iterator<Map.Entry<String, CallbackHolder>> it = callbacks.entrySet().iterator();
         while (it.hasNext()) {
-            Map.Entry<String, SafeProgressCallback> next = it.next();
-            SafeProgressCallback safeProgressCallback = next.getValue();
+            Map.Entry<String, CallbackHolder> next = it.next();
+            CallbackHolder safeProgressCallback = next.getValue();
             if (safeProgressCallback == null || (safeProgressCallback.remove(callback) && safeProgressCallback.isEmpty())) {
                 it.remove();
                 if (safeProgressCallback != null) {
@@ -65,6 +65,14 @@ class SafeRefList {
                 }
             }
         }
+    }
+
+    public boolean contains(ProgressCallback callback) {
+        for (CallbackHolder holder : callbacks.values()) {
+            if (holder.contains(callback))
+                return true;
+        }
+        return false;
     }
 
 }
