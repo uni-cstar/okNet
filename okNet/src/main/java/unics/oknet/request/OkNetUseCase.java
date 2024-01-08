@@ -1,6 +1,5 @@
 package unics.oknet.request;
 
-import android.util.Log;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -9,13 +8,17 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.FileSystemException;
 import java.util.HashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 import okhttp3.Response;
 import okhttp3.ResponseBody;
 import okio.BufferedSink;
 import okio.Okio;
 import retrofit2.Call;
-import retrofit2.Callback;
 import unics.oknet.OkNet;
 
 /**
@@ -31,7 +34,24 @@ public class OkNetUseCase {
     //请求中的任务信息
     HashMap<String, ProgressInfo> runningInfo = new HashMap<>();
 
+    private final ExecutorService executor;
+
+
     private OkNetUseCase() {
+        // CPU的数量
+        int cpuCount = Runtime.getRuntime().availableProcessors();
+        // 线程池的大小
+        int poolSize = cpuCount;
+        // 任务队列的长度
+        int queueCapacity = 10;
+        executor = new ThreadPoolExecutor(
+                poolSize,
+                poolSize,
+                0L,
+                TimeUnit.MILLISECONDS,
+                new LinkedBlockingQueue<>(queueCapacity),
+                new ThreadPoolExecutor.CallerRunsPolicy()
+        );
     }
 
     private static class SingleTone {
@@ -146,45 +166,40 @@ public class OkNetUseCase {
             @NotNull File file,
             @NotNull FileDownloadCallback callback
     ) {
-        if (notifyCallbackOnlyIfRunning(id, url, callback))
-            return;
-        Call<ResponseBody> call = createCall(id, url, callback);
-        callback.onStart(url);
-        call.enqueue(new Callback<ResponseBody>() {
-            @Override
-            public void onResponse(@NotNull Call<ResponseBody> call, @NotNull retrofit2.Response<ResponseBody> response) {
-                CallbackHolder holder = callbacks.get(id);
-                if (holder == null) {
-                    Log.e("OkNetUseCase", "onResponse:文件下载成功，但没有回调？ ");
-                    return;
-                }
-                try {
+        try {
+            if (notifyCallbackOnlyIfRunning(id, url, callback))
+                return;
+            Call<ResponseBody> call = createCall(id, url, callback);
+            callback.onStart(url);
+            executor.submit(new Runnable() {
+                @Override
+                public void run() {
                     try {
-                        assert response.body() != null;
-                        writeToFile(response.body(), file);
-                    } catch (Throwable e) {
+                        ResponseBody body = call.execute().body();
+                        assert body != null;
+                        writeToFile(body, file);
+                        CallbackHolder holder = callbacks.get(id);
+                        if (holder != null)
+                            holder.onComplete(url, file);
+                    } catch (Exception e) {
                         e.printStackTrace();
-                        holder.onError(url, e);
-                        return;
+                        CallbackHolder holder = callbacks.get(id);
+                        if (holder != null)
+                            holder.onError(url, e);
+                    } finally {
+                        removeRunningCall(id);
                     }
-                    holder.onComplete(url, file);
-                } finally {
-                    removeRunningCall(id);
                 }
-            }
+            });
 
-            @Override
-            public void onFailure(@NotNull Call<ResponseBody> call, @NotNull Throwable e) {
-                try {
-                    CallbackHolder holder = callbacks.get(id);
-                    if (holder != null) {
-                        holder.onError(url, e);
-                    }
-                } finally {
-                    removeRunningCall(id);
-                }
-            }
-        });
+        } catch (Throwable e) {
+            e.printStackTrace();
+
+            CallbackHolder holder = callbacks.get(id);
+            if (holder != null)
+                holder.onError(url, e);
+            removeRunningCall(id);
+        }
     }
 
     /**

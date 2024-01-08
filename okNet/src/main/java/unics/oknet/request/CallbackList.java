@@ -27,10 +27,10 @@ class CallbackList {
             callbackProxy = cachedCallbacks.poll();
             if (callbackProxy == null) {
                 callbackProxy = new CallbackHolder(key, ref);
-                callbacks.put(key, callbackProxy);
             } else {
-                callbackProxy.add(ref);
+                callbackProxy.reuse(key, ref);
             }
+            callbacks.put(key, callbackProxy);
         }
         return callbackProxy;
     }

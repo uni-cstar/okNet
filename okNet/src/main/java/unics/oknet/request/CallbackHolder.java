@@ -32,6 +32,8 @@ class CallbackHolder implements ProgressCallback, FileDownloadCallback {
     }
 
     public void add(ProgressCallback real) {
+        if (this.refs.contains(real))
+            return;
         this.refs.add(real);
     }
 
@@ -54,6 +56,16 @@ class CallbackHolder implements ProgressCallback, FileDownloadCallback {
     public void reset() {
         this.refs.clear();
         this.id = null;
+    }
+
+    /**
+     * 调用reuse之前请自行调用{@link #reset()}
+     * @param id
+     * @param callback
+     */
+    void reuse(String id, ProgressCallback callback) {
+        this.id = id;
+        this.refs.add(callback);
     }
 
     @Override

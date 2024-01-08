@@ -1,4 +1,4 @@
 
 rootProject.name = "okNet"
 include ':app'
-include ':oknet'
+include ':okNet'
