@@ -198,7 +198,6 @@ object OkNet {
             "OkNetClient has already been configured and cannot be configured repeatedly"
         }
         _app = app
-        hasInit = true
         val oBuilder = OkHttpClient.Builder()
             .addOkDomain(baseUrl)
             .addInterceptor(ProgressInterceptor())
@@ -207,6 +206,7 @@ object OkNet {
         initializer.invoke(oBuilder, rBuilder)
         mOkHttpClient = oBuilder.build()
         mRetrofit = rBuilder.client(mOkHttpClient).build()
+        hasInit = true
     }
 
     /**

@@ -1,16 +1,16 @@
 apply plugin: 'java-library'
 apply plugin: 'kotlin'
-//需要发布的时候开启下面配置
-//使用参考：https://github.com/vanniktech/gradle-maven-publish-plugin/blob/main/docs/base.md
-apply plugin: 'com.vanniktech.maven.publish'
-
-allprojects {
-    plugins.withId("com.vanniktech.maven.publish") {
-        mavenPublish {
-            sonatypeHost = "S01"
-        }
-    }
-}
+////需要发布的时候开启下面配置
+////使用参考：https://github.com/vanniktech/gradle-maven-publish-plugin/blob/main/docs/base.md
+//apply plugin: 'com.vanniktech.maven.publish'
+//
+//allprojects {
+//    plugins.withId("com.vanniktech.maven.publish") {
+//        mavenPublish {
+//            sonatypeHost = "S01"
+//        }
+//    }
+//}
 
 java {
     sourceCompatibility JavaVersion.VERSION_1_8
