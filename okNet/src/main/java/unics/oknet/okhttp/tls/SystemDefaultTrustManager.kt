@@ -2,8 +2,12 @@ package unics.oknet.okhttp.tls
 
 import java.security.GeneralSecurityException
 import java.security.KeyStore
-import java.util.*
-import javax.net.ssl.*
+import java.util.Arrays
+import javax.net.ssl.SSLContext
+import javax.net.ssl.SSLSocketFactory
+import javax.net.ssl.TrustManager
+import javax.net.ssl.TrustManagerFactory
+import javax.net.ssl.X509TrustManager
 
 object SystemDefaultTrustManager {
 

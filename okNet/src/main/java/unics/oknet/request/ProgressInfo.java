@@ -4,7 +4,6 @@ import android.os.SystemClock;
 import android.text.format.DateUtils;
 
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * Create by luochao

@@ -19,15 +19,15 @@ java {
 
 dependencies {
     def retrofit_version = '2.6.4'
-    def okhttp_version = '3.12.12'
+    def okhttp_version = '3.12.13'
 
     testImplementation 'junit:junit:4.+'
-    /*部分类用到了Android SDK相关的类*/
+    /*部分类用到了Android SDK相关的类：OkNet用到了Application*/
     compileOnly 'com.google.android:android:4.1.1.4'
 
     implementation "com.squareup.okhttp3:okhttp:$okhttp_version"
 
-    //携程
+    //Android 协程依赖
     implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.3.2'
 
     /**
@@ -51,9 +51,7 @@ dependencies {
      */
     compileOnly "com.squareup.okhttp3:logging-interceptor:$okhttp_version"
 
-
     /*关于Converter，如果用户依赖了moshi，则优先使用moshi，如果没有再检查Gson*/
-
     //retrofit 如果是kotlin，则考虑使用moshi
     compileOnly "com.squareup.retrofit2:converter-moshi:$retrofit_version"
 

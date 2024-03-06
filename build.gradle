@@ -1,6 +1,17 @@
 buildscript {
 
     repositories {
+        //阿里云效提供的maven地址  https://developer.aliyun.com/mvn/guide
+        //public
+        maven { url 'https://maven.aliyun.com/repository/public' }
+        //central
+        maven { url 'https://maven.aliyun.com/repository/central'}
+        //google
+        maven { url 'https://maven.aliyun.com/repository/google' }
+        //gradle-plugin
+        maven { url 'https://maven.aliyun.com/repository/gradle-plugin' }
+        //jcenter
+        maven { url 'https://maven.aliyun.com/repository/jcenter' }
         google()
         mavenCentral()
     }
@@ -15,6 +26,17 @@ buildscript {
 
 allprojects {
     repositories {
+        //阿里云效提供的maven地址  https://developer.aliyun.com/mvn/guide
+        //public
+        maven { url 'https://maven.aliyun.com/repository/public' }
+        //central
+        maven { url 'https://maven.aliyun.com/repository/central'}
+        //google
+        maven { url 'https://maven.aliyun.com/repository/google' }
+        //gradle-plugin
+        maven { url 'https://maven.aliyun.com/repository/gradle-plugin' }
+        //jcenter
+        maven { url 'https://maven.aliyun.com/repository/jcenter' }
         google()
         mavenCentral()
     }

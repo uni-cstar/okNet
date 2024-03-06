@@ -18,12 +18,12 @@ import androidx.fragment.app.DialogFragment
 class DialogTestActivity : AppCompatActivity(R.layout.activity_dialog_fragment_test) {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        findViewById<View>(R.id.show).setOnClickListener {
-            DialogTest().show(supportFragmentManager, "hello")
-        }
-        findViewById<View>(R.id.go).setOnClickListener {
-            startActivity(Intent(this, OkDomainActivity::class.java))
-        }
+//        findViewById<View>(R.id.show).setOnClickListener {
+//            DialogTest().show(supportFragmentManager, "hello")
+//        }
+//        findViewById<View>(R.id.go).setOnClickListener {
+//            startActivity(Intent(this, OkDomainActivity::class.java))
+//        }
 
     }
 
