@@ -16,11 +16,18 @@
 
 [解决Retrofit多BaseUrl及运行时动态改变BaseUrl(二)](https://www.jianshu.com/p/35a8959c2f86)
 
+## [发布记录](https://github.com/uni-cstar/okNet/blob/master/doc/RELEASE.md)
+##### 0.0.7
+支持带进度的文件下载，详情参考OkNetUseCase.getInstance().download相关方法
+##### 0.0.6
+支持多域名、全局header等配置
+发布maven，支持远程依赖
+
 ## 1. Setup
 
 添加依赖
 ```
-implementation 'io.github.uni-cstar:oknet:0.0.6'
+implementation 'io.github.uni-cstar:oknet:0.0.7'
 ```
 
 ## 2. Usage

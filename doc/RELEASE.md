@@ -1,3 +1,10 @@
+# 0.0.7 
+- 支持带进度的文件下载（具体查看OkNetUseCase相关类），安全处理回调
+
+# 0.0.6
+- 新增部分工具类（网络检测、tls证书校验等相关的工具类）
+- 发布maven，支持远程依赖
+
 # 0.0.5
 
 - 新增OkNetClient,提供常规客户端Http（Retrofit+OkHttpClient）的使用场景
