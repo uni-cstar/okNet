@@ -170,24 +170,21 @@ public class OkNetUseCase {
                 return;
             Call<ResponseBody> call = createCall(id, url, callback);
             callback.onStart(url);
-            executor.submit(new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        ResponseBody body = call.execute().body();
-                        assert body != null;
-                        writeToFile(body, file);
-                        CallbackHolder holder = callbacks.get(id);
-                        if (holder != null)
-                            holder.onComplete(url, file);
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                        CallbackHolder holder = callbacks.get(id);
-                        if (holder != null)
-                            holder.onError(url, e);
-                    } finally {
-                        removeRunningCall(id);
-                    }
+            executor.submit(() -> {
+                try {
+                    ResponseBody body = call.execute().body();
+                    assert body != null;
+                    writeToFile(body, file);
+                    CallbackHolder holder = callbacks.get(id);
+                    if (holder != null)
+                        holder.onComplete(url, file);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    CallbackHolder holder = callbacks.get(id);
+                    if (holder != null)
+                        holder.onError(url, e);
+                } finally {
+                    removeRunningCall(id);
                 }
             });
 

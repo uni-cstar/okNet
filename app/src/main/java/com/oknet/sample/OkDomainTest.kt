@@ -1,7 +1,7 @@
 package com.oknet.sample
 
 import retrofit2.http.*
-import unicstar.oknet.okhttp.OkDomain.DOMAIN_NAME_HEADER
+import unics.oknet.okhttp.OkDomain.DOMAIN_NAME_HEADER
 
 interface OkDomainTest {
 

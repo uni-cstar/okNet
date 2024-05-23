@@ -14,7 +14,8 @@ import unics.oknet.request.ProgressInterceptor
 import java.util.concurrent.TimeUnit
 
 /**
- * 简易的网络api请求客户端；也可以单独使用[unicstar.oknet.okhttp.OkDomain]的功能
+ * 简易的网络api请求客户端；也可以单独使用[OkDomain]的功能
+ * 使用前请先调用[setup]方法进行初始化配置，支持懒加载
  * */
 object OkNet {
 
@@ -25,11 +26,14 @@ object OkNet {
 
         val app: Application
 
+        /**
+         * 初始主地址，在初始化后会将该地址配置为mainBaseUrl
+         */
         val baseUrl: String
 
         /**
          * 配置：用于配置用户的自定义配置
-         * 注意：不用再调用[unicstar.oknet.okhttp.addOkDomain]放，内部已经调用了这个方法
+         * 注意：不用再调用[addOkDomain]放，内部已经调用了这个方法
          */
         fun onSetup(oBuilder: OkHttpClient.Builder, rBuilder: Retrofit.Builder)
 
@@ -43,43 +47,137 @@ object OkNet {
     private lateinit var mOkHttpClient: OkHttpClient
     private lateinit var mRetrofit: Retrofit
     private val mApiServiceCaches = mutableMapOf<Class<*>, Any>()
-
-    //是否已经初始化
-    private var hasInit: Boolean = false
+    private var mInit: Boolean = false
     private var mLazyInitializer: LazyInitializer? = null
+    private lateinit var mApp: Application
 
-    private lateinit var _app: Application
+    internal var DEBUG = OkDomain.debuggable
 
     @JvmStatic
     val app: Application
         get() {
-            if (hasInit)
-                return _app
+            if (mInit)
+                return mApp
+            //如果没有初始化，则使用的是懒加载
             return mLazyInitializer!!.app
         }
 
-    var debuggable: Boolean
-        get() = OkDomain.debuggable
-        set(value) {
-            OkDomain.debuggable = value
-        }
+    /**
+     * 设置是否允许调试
+     */
+    @JvmStatic
+    fun setDebug(debuggable: Boolean) {
+        OkDomain.debuggable = debuggable
+        DEBUG = debuggable
+    }
 
+    /**
+     * 获取OkHttp客户端实例，必须先调用[setup]方法，否则会抛出异常
+     */
     @JvmStatic
     val okHttpClient: OkHttpClient
         get() {
-            tryInit()
+            requirePerformLazyInit()
             return mOkHttpClient
         }
 
-    @PublishedApi
-    internal fun tryInit() {
-        if (hasInit)
+    /**
+     * 快速配置：用于通常没有自定义配置，开箱即用
+     * @param baseUrl 基地址
+     * @param debug 是否开启调试日志
+     * @param connectTimeoutMsec 链接超时，默认30000
+     * @param readTimeoutMsec 读取超时，默认30000
+     * @param retryOnConnectionFailure  连接失败是否重连，默认true
+     * @param converterFactory 用于retrofit配置的json工厂
+     * @param mainHeaders 主域名配置的全局header，后续可以修改；[Triple.first]-对应header的key，[Triple.second]-对应header的value，[Triple.third]-对应header冲突处理策略
+     */
+    @JvmStatic
+    fun setup(
+        app: Application,
+        baseUrl: String,
+        debug: Boolean = false,
+        connectTimeoutMsec: Long = 30 * 1000,
+        readTimeoutMsec: Long = 30 * 1000,
+        retryOnConnectionFailure: Boolean = true,
+        converterFactory: Converter.Factory? = quicklyPreferredConverterFactory(),
+        vararg mainHeaders: Triple<String, String, OnConflictStrategy>
+    ) {
+        setup(
+            quicklyLazyInitializer(
+                app,
+                baseUrl,
+                debug,
+                connectTimeoutMsec,
+                readTimeoutMsec,
+                retryOnConnectionFailure,
+                converterFactory,
+                *mainHeaders
+            )
+        )
+    }
+
+    /**
+     * 设置懒加载
+     */
+    @JvmStatic
+    fun setup(lazyInitializer: LazyInitializer) {
+        require(!mInit) {
+            "OkNetClient has already been configured and cannot be configured repeatedly"
+        }
+        mLazyInitializer = lazyInitializer
+    }
+
+    @JvmStatic
+    fun setup(
+        app: Application,
+        baseUrl: String,
+        initializer: (OkHttpClient.Builder, Retrofit.Builder) -> Unit
+    ) {
+        performSetup(app, baseUrl, initializer)
+    }
+
+    /**
+     * 确保懒加载已执行
+     */
+    private fun requirePerformLazyInit() {
+        if (mInit) {
             return
-        val lazyInitializer =
-            mLazyInitializer ?: throw RuntimeException("请先调用setup方法进行初始化")
-        setup(lazyInitializer.app, lazyInitializer.baseUrl, lazyInitializer::onSetup)
-        lazyInitializer.onConfigured()
-        mLazyInitializer = null
+        }
+        synchronized(this) {
+            if (mInit) {
+                return
+            }
+            val lazyInitializer =
+                mLazyInitializer ?: throw RuntimeException("please call setup method first.")
+            performSetup(lazyInitializer.app, lazyInitializer.baseUrl, lazyInitializer::onSetup)
+            lazyInitializer.onConfigured()
+            mLazyInitializer = null
+        }
+    }
+
+    private fun performSetup(
+        app: Application,
+        baseUrl: String,
+        initializer: (OkHttpClient.Builder, Retrofit.Builder) -> Unit
+    ) {
+        synchronized(this) {
+            require(!mInit) {
+                "OkNetClient has already been configured and cannot be configured repeatedly"
+            }
+            require(baseUrl.isNotBlank()) {
+                "baseUrl must not be empty."
+            }
+            mApp = app
+            val oBuilder = OkHttpClient.Builder()
+                .addOkDomain(baseUrl)
+                .addInterceptor(ProgressInterceptor())
+            val rBuilder = Retrofit.Builder()
+            rBuilder.baseUrl(baseUrl)
+            initializer.invoke(oBuilder, rBuilder)
+            mOkHttpClient = oBuilder.build()
+            mRetrofit = rBuilder.client(mOkHttpClient).build()
+            mInit = true
+        }
     }
 
     private fun quicklyPreferredConverterFactory(): Converter.Factory? {
@@ -89,7 +187,7 @@ object OkNet {
             GsonConverterFactory.create()
         } else {
 //            throw RuntimeException("can not found moshi and gson converter factory,please specified converter directly.")
-            logD("OkNetClient") {
+            logd("OkNetClient") {
                 "can not found moshi and gson converter factory,please specified converter directly."
             }
             null
@@ -98,6 +196,7 @@ object OkNet {
     }
 
     /**
+     * 根据配置创建懒加载器
      * @param connectTimeoutMsec 链接超时，默认30000
      * @param readTimeoutMsec 读取超时，默认30000
      * @param retryOnConnectionFailure  连接失败是否重连，默认true
@@ -120,6 +219,7 @@ object OkNet {
             override val baseUrl: String = baseUrl
 
             override fun onSetup(oBuilder: OkHttpClient.Builder, rBuilder: Retrofit.Builder) {
+                setDebug(debug)
                 oBuilder.connectTimeout(connectTimeoutMsec, TimeUnit.MILLISECONDS)
                     .readTimeout(readTimeoutMsec, TimeUnit.MILLISECONDS)
                     .retryOnConnectionFailure(retryOnConnectionFailure) //
@@ -148,84 +248,24 @@ object OkNet {
     }
 
     /**
-     * 快速配置：用于通常没有自定义配置，开箱即用
-     * @param baseUrl 基地址
-     * @param debug 是否开启调试日志
-     * @param connectTimeoutMsec 链接超时，默认30000
-     * @param readTimeoutMsec 读取超时，默认30000
-     * @param retryOnConnectionFailure  连接失败是否重连，默认true
-     * @param converterFactory 用于retrofit配置的json工厂
-     * @param mainHeaders 主域名配置的全局header，后续可以修改；[Triple.first]-对应header的key，[Triple.second]-对应header的value，[Triple.third]-对应header冲突处理策略
-     */
-    @JvmStatic
-    fun setupQuickly(
-        app: Application,
-        baseUrl: String,
-        debug: Boolean = false,
-        connectTimeoutMsec: Long = 30 * 1000,
-        readTimeoutMsec: Long = 30 * 1000,
-        retryOnConnectionFailure: Boolean = true,
-        converterFactory: Converter.Factory? = quicklyPreferredConverterFactory(),
-        vararg mainHeaders: Triple<String, String, OnConflictStrategy>
-    ) {
-        debuggable = debug
-        setup(
-            quicklyLazyInitializer(
-                app,
-                baseUrl,
-                debug,
-                connectTimeoutMsec,
-                readTimeoutMsec,
-                retryOnConnectionFailure,
-                converterFactory,
-                *mainHeaders
-            )
-        )
-    }
-
-    @JvmStatic
-    fun setup(lazyInitializer: LazyInitializer) {
-        mLazyInitializer = lazyInitializer
-    }
-
-    @JvmStatic
-    fun setup(
-        app: Application,
-        baseUrl: String,
-        initializer: (OkHttpClient.Builder, Retrofit.Builder) -> Unit
-    ) {
-        require(!hasInit) {
-            "OkNetClient has already been configured and cannot be configured repeatedly"
-        }
-        _app = app
-        val oBuilder = OkHttpClient.Builder()
-            .addOkDomain(baseUrl)
-            .addInterceptor(ProgressInterceptor())
-        val rBuilder = Retrofit.Builder()
-        rBuilder.baseUrl(baseUrl)
-        initializer.invoke(oBuilder, rBuilder)
-        mOkHttpClient = oBuilder.build()
-        mRetrofit = rBuilder.client(mOkHttpClient).build()
-        hasInit = true
-    }
-
-    /**
      * 修改主域名
      */
     @JvmStatic
-    inline fun setMainDomain(url: String) {
-        tryInit()
+    fun setMainDomain(url: String) {
+        requirePerformLazyInit()
         OkDomain.setMainDomain(url)
     }
 
     /**
      * set the domain of the specified name.
-     * 设置[name]表示的域名为[url],通常是配置其他域名
+     *
+     * 设置域名为[name]的[url]地址,通常是配置其他域名
+     *
      * @param name 域名的key，标识符，比如使用腾讯的域名，那么自定义一个标识符区别该域名 ,比如使用tencent
      */
     @JvmStatic
-    inline fun setDomain(name: String, url: String) {
-        tryInit()
+    fun setDomain(name: String, url: String) {
+        requirePerformLazyInit()
         OkDomain.setDomain(name, url)
     }
 
@@ -236,36 +276,41 @@ object OkNet {
      */
     @JvmStatic
     @JvmOverloads
-    inline fun addMainHeader(
+    fun addMainHeader(
         key: String,
         value: String,
         conflictStrategy: OnConflictStrategy = OnConflictStrategy.IGNORE
     ) {
-        tryInit()
+        requirePerformLazyInit()
         OkDomain.addMainHeader(key, value, conflictStrategy)
     }
 
+    /**
+     * Removes the specified key and its corresponding value from the global headers of the Main Domain.
+     * 从主域名的全局header配置中移除指定key的配置
+     * @return the previous value associated with the key, or null if the key was not present in the global header.
+     */
     @JvmStatic
-    inline fun removeMainHeader(key: String): Pair<String, OnConflictStrategy>? {
-        tryInit()
+    fun removeMainHeader(key: String): Pair<String, OnConflictStrategy>? {
+        requirePerformLazyInit()
         return OkDomain.removeMainHeader(key)
     }
 
     @JvmStatic
     @JvmOverloads
-    inline fun addHeader(
+    fun addHeader(
         domainName: String,
         key: String,
         value: String,
         conflictStrategy: OnConflictStrategy = OnConflictStrategy.IGNORE
     ) {
-        tryInit()
+        requirePerformLazyInit()
         OkDomain.addHeader(domainName, key, value, conflictStrategy)
     }
 
     @JvmStatic
-    inline fun removeHeader(domainName: String, key: String): Pair<String, OnConflictStrategy>? {
-        tryInit()
+    fun removeHeader(domainName: String, key: String): Pair<String, OnConflictStrategy>? {
+        requirePerformLazyInit()
         return OkDomain.removeHeader(domainName, key)
     }
 
@@ -275,8 +320,9 @@ object OkNet {
      */
     @JvmStatic
     fun <T : Any> createApiService(clz: Class<T>, cacheable: Boolean): T {
-        tryInit()
+        requirePerformLazyInit()
         return if (cacheable) {
+            @Suppress("UNCHECKED_CAST")
             mApiServiceCaches.getOrPut(clz) {
                 mRetrofit.create(clz)
             } as T

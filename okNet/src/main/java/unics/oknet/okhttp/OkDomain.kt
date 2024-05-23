@@ -20,6 +20,8 @@ import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.Response
+import unics.oknet.logd
+import unics.oknet.logw
 import unics.oknet.okhttp.OkDomain.addHeader
 import unics.oknet.okhttp.OkDomain.addMainHeader
 import unics.oknet.okhttp.OkDomain.enable
@@ -50,30 +52,25 @@ object OkDomain {
     const val DOMAIN_NAME = "Domain-Name"
     const val DOMAIN_NAME_HEADER = "$DOMAIN_NAME:"
 
-    internal var domainInterceptor: DomainInterceptor? = null
-        private set
+    private var domainInterceptor: DomainInterceptor? = null
 
-    var enable: Boolean
-        @JvmStatic
-        get() = domainInterceptor?.enable ?: false
+    var enable: Boolean = true
         @JvmStatic
         set(value) {
+            field = value
             domainInterceptor?.enable = value
         }
-
-    /**
-     * 是否开启调试日志
-     */
-    @get:JvmStatic
-    @set:JvmStatic
-    var debuggable: Boolean = false
 
     /**
      * 使用OkDomain
      */
     @JvmStatic
     fun useOkDomain(builder: OkHttpClient.Builder, baseUrl: String) {
-        builder.addInterceptor(domainInterceptor ?: DomainInterceptor(baseUrl).also {
+        val interceptor = domainInterceptor
+        if (interceptor != null && builder.interceptors().contains(interceptor)) {
+            return
+        }
+        builder.addInterceptor(interceptor ?: DomainInterceptor(baseUrl).also {
             domainInterceptor = it
         })
     }
@@ -117,6 +114,11 @@ object OkDomain {
         interceptor.addMainHeader(key, value, conflictStrategy)
     }
 
+    /**
+     * Removes the specified key and its corresponding value from the global headers of the Main Domain.
+     * 从主域名的全局header配置中移除指定key的配置
+     * @return the previous value associated with the key, or null if the key was not present in the global header.
+     */
     @JvmStatic
     fun removeMainHeader(key: String): Pair<String, OnConflictStrategy>? {
         return domainInterceptor?.removeMainHeader(key)
@@ -173,17 +175,17 @@ object OkDomain {
         ) {
             val cache = configs[name]
             if (cache != null) {
-                logD {
+                logd {
                     "[DomainInterceptor#setDomain] the domain config (key=$name) is exists,do update"
                 }
                 val previous = cache.expectBaseUrl
                 cache.updateBaseUrl(url)
                 //从老的中移除目标地址
                 cache.oldBaseUrls.remove(url)
-                logD { "[DomainInterceptor#setDomain] set previous ($previous) to expect (${cache.expectBaseUrl})" }
+                logd { "[DomainInterceptor#setDomain] set previous ($previous) to expect (${cache.expectBaseUrl})" }
             } else {
                 configs[name] = DomainConfig(name, url)
-                logD { "[DomainInterceptor#setDomain] save the new domain config (key=$name,url=$url)" }
+                logd { "[DomainInterceptor#setDomain] save the new domain config (key=$name,url=$url)" }
             }
         }
 
@@ -191,6 +193,7 @@ object OkDomain {
             key: String, value: String,
             conflictStrategy: OnConflictStrategy = OnConflictStrategy.IGNORE
         ) = addHeader(MAIN_DOMAIN, key, value, conflictStrategy)
+
 
         fun removeMainHeader(key: String): Pair<String, OnConflictStrategy>? =
             removeHeader(MAIN_DOMAIN, key)
@@ -203,7 +206,7 @@ object OkDomain {
             require(cache != null) {
                 "[DomainInterceptor#addHeader] the domain config named '$domainName' not found,please use call ${::setDomain} method before add header."
             }
-            logD { "[DomainInterceptor#addHeader] add header to the domain config named '$domainName' (key=${key},value=$value,conflictStrategy=$conflictStrategy)" }
+            logd { "[DomainInterceptor#addHeader] add header to the domain config named '$domainName' (key=${key},value=$value,conflictStrategy=$conflictStrategy)" }
             return cache.addHeader(key, value, conflictStrategy)
         }
 
@@ -212,25 +215,25 @@ object OkDomain {
         }
 
         override fun intercept(chain: Interceptor.Chain): Response {
-            logD { "[DomainInterceptor]intercept" }
+            logd { "[DomainInterceptor]intercept" }
             return chain.proceed(handleRequest(chain.request()))
         }
 
         private fun handleRequest(request: Request): Request {
             if (!enable)
                 return request
-            logD { "[DomainInterceptor#handleRequest] handleRequest" }
+            logd { "[DomainInterceptor#handleRequest] handleRequest" }
             val domainName = obtainDomainNameFromHeaders(request)
             return if (domainName.isNullOrEmpty()) {
                 //没有配置domain的，都是使用主域名
-                logD { "[DomainInterceptor#handleRequest] the request does not set domain name,use main domain to transform" }
+                logd { "[DomainInterceptor#handleRequest] the request does not set domain name,use main domain to transform" }
                 transformRequest(configs[MAIN_DOMAIN]!!, request)
             } else {
                 val domainConfig = configs[domainName]
                 require(domainConfig != null) {
                     "can not found the base url of the domain name(=${domainName}) ,please call setDomain($domainName,your base url) method set before use."
                 }
-                logD { "[DomainInterceptor#handleRequest] the domain config found ,begin transform." }
+                logd { "[DomainInterceptor#handleRequest] the domain config found ,begin transform." }
                 transformRequest(domainConfig, request)
             }
         }
@@ -243,7 +246,7 @@ object OkDomain {
                 val urlValue = request.url().toString()
                 val baseUrl = obtainBaseUrl(urlValue, domainConfig)
                 if (baseUrl.isNullOrEmpty()) {
-                    logD { "[DomainInterceptor#transformRequest] the base url is not found in config domains,ure original request(ignore base url transform and global header set)." }
+                    logd { "[DomainInterceptor#transformRequest] the base url is not found in config domains,ure original request(ignore base url transform and global header set)." }
                     return request
                 }
 
@@ -259,7 +262,7 @@ object OkDomain {
         private fun newRequest(baseUrl: String, request: Request, config: DomainConfig): Request {
             val isBaseUrlSame = baseUrl == config.expectBaseUrl
             if (isBaseUrlSame && config.headers.isEmpty()) {
-                logD { "[DomainInterceptor#newRequest] the base url is same with current config,and the global header is empty,use the original request." }
+                logd { "[DomainInterceptor#newRequest] the base url is same with current config,and the global header is empty,use the original request." }
                 return request
             }
 
@@ -267,7 +270,7 @@ object OkDomain {
             if (!isBaseUrlSame) {
                 val urlValue = request.url().toString()
                 val newUrlValue = urlValue.replace(baseUrl, config.expectBaseUrl)
-                logD { "[DomainInterceptor#transformRequest] transform success,new url is $newUrlValue (the original base url is :$baseUrl)" }
+                logd { "[DomainInterceptor#transformRequest] transform success,new url is $newUrlValue (the original base url is :$baseUrl)" }
                 builder.url(newUrlValue)
             }
             val originalHeaders = request.headers()
@@ -283,7 +286,7 @@ object OkDomain {
          */
         private fun obtainBaseUrl(urlValue: String, domainConfig: DomainConfig): String? {
             if (urlValue.startsWith(domainConfig.expectBaseUrl)) {
-                logD { "[DomainInterceptor#obtainBaseUrl] the original request url is start with the expect base url,return directly." }
+                logd { "[DomainInterceptor#obtainBaseUrl] the original request url is start with the expect base url,return directly." }
                 return domainConfig.expectBaseUrl
             }
             val baseUrl = domainConfig.oldBaseUrls.findLast {
@@ -291,18 +294,18 @@ object OkDomain {
             }
             if (!baseUrl.isNullOrEmpty()) {
                 //如果在当前url chain中查找到
-                logD { "[DomainInterceptor#obtainBaseUrl] find the base url,return." }
+                logd { "[DomainInterceptor#obtainBaseUrl] find the base url,return." }
                 return baseUrl
             }
 
             if (domainConfig.domainName == MAIN_DOMAIN) {
-                logD { "[DomainInterceptor#obtainBaseUrl] not find base url,return directly." }
+                logd { "[DomainInterceptor#obtainBaseUrl] not find base url,return directly." }
                 return null
             } else {
-                logD { "[DomainInterceptor#obtainBaseUrl] not find base url,try found in main domain." }
+                logd { "[DomainInterceptor#obtainBaseUrl] not find base url,try found in main domain." }
                 val mainChain = configs[MAIN_DOMAIN]
                 if (mainChain == null) {
-                    logD { "[DomainInterceptor#obtainBaseUrl] main domain is null,return directly." }
+                    logd { "[DomainInterceptor#obtainBaseUrl] main domain is null,return directly." }
                     return null
                 }
                 return obtainBaseUrl(urlValue, mainChain)
@@ -350,7 +353,7 @@ object OkDomain {
         @Synchronized
         fun updateBaseUrl(url: String) {
             if (url == baseUrl) {
-                logD { "[UrlChain#update] the new base url is same with current base url,ignore set. current = $baseUrl expect = $url" }
+                logd { "[UrlChain#update] the new base url is same with current base url,ignore set. current = $baseUrl expect = $url" }
                 return
             }
             val previous = baseUrl
@@ -369,9 +372,6 @@ object OkDomain {
             return headers.put(key, Pair(value, conflictStrategy))
         }
 
-        /**
-         * remove global header
-         */
         fun removeHeader(key: String): Pair<String, OnConflictStrategy>? {
             return headers.remove(key)
         }
@@ -380,13 +380,5 @@ object OkDomain {
     private const val TAG = "RNet"
     internal const val MAIN_DOMAIN = "_MAIN_"
 
-    /**
-     * 采用这种方法（内联），在使用的时候，可以避免字符串的创建
-     */
-    @JvmStatic
-    internal inline fun logD(msgFactory: () -> String) {
-        if (debuggable)
-            println("$TAG:${msgFactory.invoke()}")
-    }
 
 }

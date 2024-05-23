@@ -2,7 +2,6 @@ package unics.oknet.okhttp.tls
 
 import java.security.GeneralSecurityException
 import java.security.KeyStore
-import java.util.Arrays
 import javax.net.ssl.SSLContext
 import javax.net.ssl.SSLSocketFactory
 import javax.net.ssl.TrustManager
@@ -23,7 +22,7 @@ object SystemDefaultTrustManager {
             if (trustManagers.size != 1 || (trustManagers[0] !is X509TrustManager)) {
                 throw  IllegalStateException(
                     "Unexpected default trust managers:"
-                            + Arrays.toString(trustManagers)
+                            + trustManagers.contentToString()
                 )
             }
             return trustManagers[0] as X509TrustManager

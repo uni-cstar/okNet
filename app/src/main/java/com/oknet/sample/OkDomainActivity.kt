@@ -15,9 +15,10 @@ import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.scalars.ScalarsConverterFactory
-import unicstar.oknet.addOkDomain
-import unicstar.oknet.okhttp.OkDomain
-import unicstar.oknet.okhttp.OnConflictStrategy
+import unics.oknet.OkNet
+import unics.oknet.addOkDomain
+import unics.oknet.okhttp.OkDomain
+import unics.oknet.okhttp.OnConflictStrategy
 
 class OkDomainActivity : AppCompatActivity() {
 
@@ -42,6 +43,8 @@ class OkDomainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         OkHttpClient.Builder().addOkDomain(baseUrl)
             .build()
+        OkNet.setup(this.application!!,""){}
+
         val viewBinding = NetOkdomainActivityBinding.inflate(layoutInflater)
         setContentView(viewBinding.root)
 
