@@ -27,7 +27,7 @@
 
 添加依赖
 ```
-implementation 'io.github.uni-cstar:oknet:0.0.7'
+implementation 'io.github.uni-cstar:okNet:0.0.7'
 ```
 
 ## 2. Usage
